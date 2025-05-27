@@ -7,7 +7,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_name = db.Column(db.String(80), unique=True, nullable=False)
-    password = db.Column(db.String(200), unique=True, nullable=False)
+    insta_id = db.Column(db.String(200), unique=True, nullable=False)
+    password = db.Column(db.String(200), nullable=False)
 
     def set_password(self, password):
         self.password = generate_password_hash(password)
@@ -19,4 +20,5 @@ class Users(db.Model):
         return {
             "id": self.id,
             "user_name": self.user_name,
+            "insta_id": self.instagram_ID
         }

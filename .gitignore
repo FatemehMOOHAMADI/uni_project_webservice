@@ -1,0 +1,4 @@
+insta_admin.db
+instance/
+flask_session/
+__pychache__/

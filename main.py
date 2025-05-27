@@ -28,9 +28,10 @@ def register():
     """
 
     user_name = request.json.get("user_name")
+    insta_id = request.json.get("insta_id")
 
-    if not user_name:
-        return jsonify({"message": "please enter your username"}), 400
+    if not user_name or not insta_id:
+        return jsonify({"message": "please enter your username and instagram id correctly"}), 400
 
     password = request.json.get("password")
 
@@ -48,7 +49,7 @@ def register():
 
     generate_hash_password = generate_password_hash(password)
 
-    new_user = Users(user_name=user_name, password=generate_hash_password)
+    new_user = Users(user_name=user_name, insta_id=insta_id, password=generate_hash_password)
 
     # add the user to the database
     try:
@@ -67,8 +68,10 @@ def login():
     :return: none
     """
     user_name = request.json.get("user_name")
-    if not user_name:
-        return jsonify({"message": "please enter your username"}), 400
+    insta_id = request.json.get("insta_id")
+
+    if not user_name or not insta_id:
+        return jsonify({"message": "please make sure your username or instagram id is correct"}), 400
 
     password = request.json.get("password")
     if not password:
@@ -91,15 +94,15 @@ def index():
     return jsonify({"users": json_user})
 
 
-@app.route("/logout")
+@app.route("/logout", methods=["POST"])
 @login_required
 def logout():
     """
     logout
     :return:
     """
-    session.clear()
-    return jsonify({"message": "you are logged out"})
+    session.pop("user_id", None)
+    return jsonify({"message": "you are logged out"}), 200
 
 
 if __name__ == "__main__":
