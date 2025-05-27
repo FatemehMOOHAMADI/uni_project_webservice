@@ -8,4 +8,6 @@ the purpose of this project is to automate activities on social platforms starti
 4. YOU'RE DONE 😍
 
 
-DPI college [^1]
+[^1]
+[^1]: DPI college 
+
