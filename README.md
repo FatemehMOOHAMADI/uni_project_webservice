@@ -6,3 +6,6 @@ the purpose of this project is to automate activities on social platforms starti
 2. make you post
 3. schedule it as you like
 4. YOU'RE DONE 😍
+
+
+[^1]: DPI college
