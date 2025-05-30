@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Register</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
+</head>
+<body>
+  <h2>Register</h2>
+  <form id="registerForm">
+    <input type="text" id="user_name" placeholder="Username" required><br><br>
+    <input type="text" id="insta_id" placeholder="Instagram ID" required><br><br>
+    <input type="password" id="password" placeholder="Password" required><br><br>
+    <input type="password" id="confirm" placeholder="Confirm Password" required><br><br>
+    <button type="submit">Register</button>
+  </form>
+
+  <p id="message"></p>
+
+  <script>
+    document.getElementById('registerForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      const data = {
+        user_name: document.getElementById('user_name').value,
+        insta_id: document.getElementById('insta_id').value,
+        password: document.getElementById('password').value,
+        confirm: document.getElementById('confirm').value
+      };
+
+      const response = await fetch('/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+      document.getElementById('message').innerText = result.message;
+    });
+  </script>
+</body>
+</html>
