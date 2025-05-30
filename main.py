@@ -18,6 +18,7 @@ def login_required(f):
         return f(*args, **kwargs)
 
     return decorated_function
+    return render_template('register.html')
 
 
 @app.route("/register", methods=["POST"])
