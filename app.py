@@ -165,6 +165,7 @@ class UserLogout(Resource):
 # api routes
 api.add_resource(UserRegister, '/register')
 api.add_resource(UserLogin, '/login')
+api.add_resource(InstaLogin, '/instalogin')
 api.add_resource(UserLogout, '/logout')
 
 if __name__ == "__main__":
