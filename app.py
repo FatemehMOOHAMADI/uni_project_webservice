@@ -1,5 +1,5 @@
-from config import (app, db, Resource, api, request, session, jsonify, JWTManager, create_access_token, jwt_required,
-                    get_jwt_identity, make_response)
+from config import (app, db, Resource, api, request, jsonify, JWTManager, create_access_token, jwt_required,
+                    get_jwt_identity, make_response, send_file)
 from models import Users, generate_password_hash, check_password_hash, Insta_info, Post_insta
 from flask_jwt_extended import get_jwt, set_access_cookies, unset_jwt_cookies
 from instagrapi import Client
@@ -10,6 +10,14 @@ class UserRegister(Resource):
     """
     register the users
     """
+
+    def get(self):
+        if request.accept_mimetypes.accept_html:
+            app.logger.info("get the register.html")
+            return send_file('register.html')
+        else:
+            app.logger.info("try post request")
+            return {"message": "Use Post request"}
 
     def post(self):
         data = request.get_json()
@@ -50,8 +58,10 @@ class UserRegister(Resource):
             db.session.add(new_user)
             db.session.commit()
 
+            app.logger.info("user registered successfully")
             return {"message": "user created"}, 201
         except Exception as e:
+            app.logger.info("not successful")
             return {"message": str(e)}, 404
 
 
@@ -59,6 +69,13 @@ class UserLogin(Resource):
     """
     login the user
     """
+    def get(self):
+        if request.accept_mimetypes.accept_html:
+            app.logger.info("getting login.html")
+            return send_file('login.html')
+        else:
+            app.logger.info("try Post request")
+            return {"message": "Use Post request"}
 
     def post(self):
         data = request.get_json()
@@ -95,6 +112,7 @@ class UserLogin(Resource):
             samesite='Lax'
         )
 
+        app.logger.info("user logged in")
         return response
 
 
@@ -102,6 +120,13 @@ class InstaLogin(Resource):
     """
     connect to instagram account
     """
+    def get(self):
+        if request.accept_mimetypes.accept_html:
+            app.logger.info("getting instalogin.html")
+            return send_file('instalogin.html')
+        else:
+            app.logger.info("try Post request")
+            return {"message": "Use Post request"}
 
     @jwt_required()
     def post(self):
@@ -144,12 +169,14 @@ class InstaLogin(Resource):
             db.session.add(new_insta_user)
             db.session.commit()
 
+            app.logger.info("user logged in to instagram")
             return {
                 "message": "user connected",
                 "user info": get_user_info,
             }, 200
 
         except Exception as e:
+            app.logger.info("can't login")
             return {
                 "message": "not successful",
                 "error": str(e)
@@ -166,6 +193,7 @@ class UserLogout(Resource):
         response = make_response({"message": "you are logged out"}, 200)
 
         unset_jwt_cookies(response)
+        app.logger.info("user logged out")
         return response
 
 
