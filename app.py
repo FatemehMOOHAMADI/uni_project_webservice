@@ -1,17 +1,15 @@
 from config import (app, db, Resource, api, request, session, jsonify, JWTManager, create_access_token, jwt_required,
                     get_jwt_identity, make_response)
-from models import Users, generate_password_hash, check_password_hash
-from functools import wraps
+from models import Users, generate_password_hash, check_password_hash, Insta_info, Post_insta
 from flask_jwt_extended import get_jwt, set_access_cookies, unset_jwt_cookies
 from instagrapi import Client
 import PIL
 
 
-
 class UserRegister(Resource):
-    '''
+    """
     register the users
-    '''
+    """
 
     def post(self):
         data = request.get_json()
@@ -22,7 +20,7 @@ class UserRegister(Resource):
         if Users.query.filter_by(user_name=data['user_name']).first():
             return {"message": "user already exists"}, 400
 
-        # check for the feilds
+        # check for the fields
         if 'password' not in data:
             return {"message": "your password is missing"}, 400
 
@@ -45,7 +43,7 @@ class UserRegister(Resource):
 
         # convert password to hash
         new_password_hash = generate_password_hash(data['password'])
-        # save the user name and password to the database
+        # save the username and password to the database
         new_user = Users(user_name=data['user_name'], password=new_password_hash)
 
         try:
@@ -58,14 +56,14 @@ class UserRegister(Resource):
 
 
 class UserLogin(Resource):
-    '''
+    """
     login the user
-    '''
+    """
 
     def post(self):
         data = request.get_json()
 
-        # check for the fiels
+        # check for the fields
         if 'user_name' not in data:
             return {"message": "user name missing"}, 400
 
@@ -74,14 +72,14 @@ class UserLogin(Resource):
 
         user = Users.query.filter_by(user_name=data['user_name']).first()
 
-        # check if the fiels are empty
+        # check if the fields are empty
         if not data['user_name'] or data['user_name'] == "":
             return {"message": "please enter a valid user name"}, 404
 
         if not data['password'] or data['password'] == "" or not check_password_hash(user.password, data['password']):
             return {"message": "please enter a valid password"}, 400
 
-        access_token = create_access_token(identity=user.user_name)
+        access_token = create_access_token(identity=str(user.id))
 
         response = make_response({
             "message": "you are logged in",
@@ -99,13 +97,15 @@ class UserLogin(Resource):
 
         return response
 
+
 class InstaLogin(Resource):
-    '''
+    """
     connect to instagram account
-    '''
+    """
+
     @jwt_required()
     def post(self):
-        # ask the user to input their instagtam info
+        # ask the user to input their instagram info
         data = request.get_json()
 
         if 'username_insta' not in data or 'password_insta' not in data:
@@ -121,8 +121,8 @@ class InstaLogin(Resource):
             current_user = get_jwt_identity()
             # query which account belong to the user
             exist_user_account = Insta_info.query.filter_by(
-                username_insta = data['username_insta'],
-                user_id = current_user
+                username_insta=data['username_insta'],
+                user_id=current_user
             ).first()
 
             if exist_user_account:
@@ -133,26 +133,33 @@ class InstaLogin(Resource):
 
             # login the user to their instagram account
             user.login(data['username_insta'], data['password_insta'])
+            get_user_info = jsonify(user.user_info_by_username(data['username_insta']))
 
             new_insta_user = Insta_info(
                 username_insta=data['username_insta'],
                 password_insta=data['password_insta'],
-                user_id = current_user
+                user_id=current_user
             )
 
             db.session.add(new_insta_user)
             db.session.commit()
 
-            return {"message": "user connected"}, 200
+            return {
+                "message": "user connected",
+                "user info": get_user_info,
+            }, 200
 
         except Exception as e:
-            return {"message": "not successful"}, 400
+            return {
+                "message": "not successful",
+                "error": str(e)
+            }, 400
 
 
 class UserLogout(Resource):
-    '''
+    """
     logout route
-    '''
+    """
 
     @jwt_required()
     def post(self):
