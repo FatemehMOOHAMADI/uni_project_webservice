@@ -5,37 +5,76 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
 </head>
 <body>
-  <h2>Register</h2><br><br>
-  <form id="registerForm">
-    <input type="text" id="user_name" placeholder="Username" required><br>
-    <input type="text" id="insta_id" placeholder="Instagram ID" required><br>
-    <input type="password" id="password" placeholder="Password" required><br>
-    <input type="password" id="confirm" placeholder="Confirm Password" required><br>
-    <button type="submit">Register</button>
-  </form>
-
-  <p id="message"></p>
+  <div class="container">
+        <h1>Register</h1>
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="user_name">Username</label>
+                <input type="text" id="user_name" name="user_name" required>
+                <div id="usernameError" class="error"></div>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+                <div id="passwordError" class="error"></div>
+            </div>
+            <div class="form-group">
+                <label for="confirm">Confirm Password</label>
+                <input type="password" id="confirm" name="confirm" required>
+                <div id="confirmError" class="error"></div>
+            </div>
+            <button type="submit">Register</button>
+        </form>
+        <div class="login-link">
+            Already have an account? <a href="/login">Login</a>
+        </div>
 
   <script>
-    document.getElementById('registerForm').addEventListener('submit', async function(event) {
-      event.preventDefault();
-
-      const data = {
-        user_name: document.getElementById('user_name').value,
-        insta_id: document.getElementById('insta_id').value,
-        password: document.getElementById('password').value,
-        confirm: document.getElementById('confirm').value
-      };
-
-      const response = await fetch('/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-
-      const result = await response.json();
-      document.getElementById('message').innerText = result.message;
-    });
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Clear previous errors
+            document.querySelectorAll('.error').forEach(el => el.textContent = '');
+            
+            const formData = {
+                user_name: document.getElementById('user_name').value,
+                password: document.getElementById('password').value,
+                confirm: document.getElementById('confirm').value
+            };
+            
+            try {
+                const response = await fetch('http://127.0.0.1:5000/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.status === 201) {
+                    alert('Registration successful!');
+                    window.location.href = 'http://127.0.0.1:5000/login';
+                } else {
+                    // Handle errors
+                    if (data.message.includes('user name')) {
+                        document.getElementById('usernameError').textContent = data.message;
+                    } else if (data.message.includes('password')) {
+                        document.getElementById('passwordError').textContent = data.message;
+                    } else if (data.message.includes('confirm')) {
+                        document.getElementById('confirmError').textContent = data.message;
+                    } else if (data.message.includes('match')) {
+                        document.getElementById('confirmError').textContent = data.message;
+                    } else {
+                        alert(data.message);
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred during registration');
+            }
+        });
   </script>
 </body>
 </html>
