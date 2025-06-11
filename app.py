@@ -1,6 +1,6 @@
 from config import (app, db, Resource, api, request, jsonify, JWTManager, create_access_token, jwt_required,
                     get_jwt_identity, make_response, send_file)
-from models import Users, generate_password_hash, check_password_hash, Insta_info, Post_insta
+from models import Users, generate_password_hash, check_password_hash, Post_insta
 from flask_jwt_extended import get_jwt, set_access_cookies, unset_jwt_cookies
 from instagrapi import Client
 import PIL
@@ -22,13 +22,22 @@ class UserRegister(Resource):
     def post(self):
         data = request.get_json()
 
+        # ask for the users username for our service
         if 'user_name' not in data:
             return {"message": "your user name is missing"}, 400
 
+        # check if the chosen username already exits in the database
         if Users.query.filter_by(user_name=data['user_name']).first():
             return {"message": "user already exists"}, 400
 
-        # check for the fields
+        # check if the user has input the instagram username and password fields
+        if 'username_insta' not in data:
+            return {"message": "you have missed to input your instagram id "}, 400
+
+        if 'password_insta' not in data:
+            return {"message": "you have missed to input your instagram password"}, 400
+
+        # check for the password fields
         if 'password' not in data:
             return {"message": "your password is missing"}, 400
 
@@ -38,6 +47,12 @@ class UserRegister(Resource):
         # check if the fields are empty
         if not data['user_name'] or data['user_name'] == "":
             return {"message": "please enter your user name"}, 400
+
+        if not data['username_insta'] or data['username_insta'] == "":
+            return {"message": "please enter your instagram username"}, 400
+
+        if not data['password_insta'] or data['password_insta'] == "":
+            return {"message": "please enter your instagram password"}, 400
 
         if not data['password'] or data['password'] == "":
             return {"message": "please enter your password"}, 400
@@ -52,7 +67,11 @@ class UserRegister(Resource):
         # convert password to hash
         new_password_hash = generate_password_hash(data['password'])
         # save the username and password to the database
-        new_user = Users(user_name=data['user_name'], password=new_password_hash)
+        new_user = Users(
+            user_name=data['user_name'],
+            username_insta=data['username_insta'],
+            password_insta=data['password_insta'],
+            password=new_password_hash)
 
         try:
             db.session.add(new_user)
@@ -61,7 +80,7 @@ class UserRegister(Resource):
             app.logger.info("user registered successfully")
             return {"message": "user created"}, 201
         except Exception as e:
-            app.logger.info("not successful")
+            app.logger.info(str(e))
             return {"message": str(e)}, 404
 
 
@@ -116,78 +135,10 @@ class UserLogin(Resource):
         return response
 
 
-class InstaLogin(Resource):
-    """
-    connect to instagram account
-    """
-    def get(self):
-        if request.accept_mimetypes.accept_html:
-            app.logger.info("getting instalogin.html")
-            return send_file('instalogin.html')
-        else:
-            app.logger.info("try Post request")
-            return {"message": "Use Post request"}
-
-    @jwt_required()
-    def post(self):
-        # ask the user to input their instagram info
-        data = request.get_json()
-
-        if 'username_insta' not in data or 'password_insta' not in data:
-            return {"message": "you have missed username or password"}, 400
-
-        if not data['username_insta'] or data['username_insta'] == "":
-            return {"message": "please enter your instagram username"}, 400
-
-        if not data['password_insta'] or data['password_insta'] == "":
-            return {"message": "please enter your instagram password"}
-
-        try:
-            current_user = get_jwt_identity()
-            # query which account belong to the user
-            exist_user_account = Insta_info.query.filter_by(
-                username_insta=data['username_insta'],
-                user_id=current_user
-            ).first()
-
-            if exist_user_account:
-                return {"message": "user already exists"}, 400
-
-            # make instance of client
-            user = Client()
-
-            # login the user to their instagram account
-            user.login(data['username_insta'], data['password_insta'])
-            get_user_info = jsonify(user.user_info_by_username(data['username_insta']))
-
-            new_insta_user = Insta_info(
-                username_insta=data['username_insta'],
-                password_insta=data['password_insta'],
-                user_id=current_user
-            )
-
-            db.session.add(new_insta_user)
-            db.session.commit()
-
-            app.logger.info("user logged in to instagram")
-            return {
-                "message": "user connected",
-                "user info": get_user_info,
-            }, 200
-
-        except Exception as e:
-            app.logger.info("can't login")
-            return {
-                "message": "not successful",
-                "error": str(e)
-            }, 400
-
-
 class UserLogout(Resource):
     """
     logout route
     """
-
     @jwt_required()
     def post(self):
         response = make_response({"message": "you are logged out"}, 200)
@@ -200,7 +151,6 @@ class UserLogout(Resource):
 # api routes
 api.add_resource(UserRegister, '/register')
 api.add_resource(UserLogin, '/login')
-api.add_resource(InstaLogin, '/instalogin')
 api.add_resource(UserLogout, '/logout')
 
 if __name__ == "__main__":
