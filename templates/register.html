@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Register</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
 </head>
@@ -11,16 +13,31 @@
             <div class="form-group">
                 <label for="user_name">Username</label>
                 <input type="text" id="user_name" name="user_name" required>
+
                 <div id="usernameError" class="error"></div>
+            </div>
+            <div class="form-group">
+                <label for="username_insta">Insta Username</label>
+                <input type="text" id="username_insta" name="username_insta" required>
+
+                <div id="username_instaError" class="error"></div>
+            </div>
+            <div class="form-group">
+                <label for="password_insta">Insta Password</label>
+                <input type="text" id="password_insta" name="password_insta" required>
+
+                <div id="password_instaError" class="error"></div>
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required>
+
                 <div id="passwordError" class="error"></div>
             </div>
             <div class="form-group">
                 <label for="confirm">Confirm Password</label>
                 <input type="password" id="confirm" name="confirm" required>
+
                 <div id="confirmError" class="error"></div>
             </div>
             <button type="submit">Register</button>
@@ -38,6 +55,8 @@
             
             const formData = {
                 user_name: document.getElementById('user_name').value,
+                username_insta: document.getElementById('username_insta').value,
+                password_insta: document.getElementById('password_insta').value,
                 password: document.getElementById('password').value,
                 confirm: document.getElementById('confirm').value
             };
@@ -60,6 +79,10 @@
                     // Handle errors
                     if (data.message.includes('user name')) {
                         document.getElementById('usernameError').textContent = data.message;
+                    } else if (data.message.includes('username_insta')) {
+                        document.getElementById('username_instaError').textContent = data.message;
+                    } else if (data.message.includes('password_insta')) {
+                        document.getElementById('password_instaError').textContent = data.message;
                     } else if (data.message.includes('password')) {
                         document.getElementById('passwordError').textContent = data.message;
                     } else if (data.message.includes('confirm')) {
